@@ -32,6 +32,7 @@ export class SchedulePage {
   confDate: string;
   deptos: any = [];
   distrs: any = [];
+  list: any = []
 
   constructor(
     public alertCtrl: AlertController,
@@ -45,88 +46,117 @@ export class SchedulePage {
     public user: UserData,
   ) {}
 
+  random_rgba() {
+    var o = Math.round, r = Math.random, s = 255;
+    return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
+  }
+
   ionViewDidLoad() {
-    this.locationData.getDepDistritos().subscribe((results) => {
-      let rows = results.json().rows
-      rows.map((result) => {
-        let depto = result.depto_nombre
-        let dist = result.dist_nombre
-        this.deptos.push(depto)
-        this.distrs.push(dist)
-      })
-      this.distrs = new Set(this.distrs)
-      this.deptos = new Set(this.deptos)
-      console.log(this.distrs)
-      console.log(this.deptos)
+    let grafico = []
+    let rowsPlanificado = []
+    let rowsEjecutado = []
+    this.locationData.getPlanificado().subscribe((planificados) => {
+        rowsPlanificado = planificados.json().rows
+        this.locationData.getEjecutado().subscribe((ejecutados) => {
+          rowsEjecutado = ejecutados.json().rows
+
+          var rows = rowsPlanificado
+          for(var i in rows){
+            var row = rows[i]
+            var obj = {}
+            obj['label'] = row.depto_nombre;
+            obj['backgroundColor'] = this.random_rgba();
+            obj['stack'] = 'Stack 0';
+            obj['data'] = []
+            obj['data'].push(row.planificado);
+            this.list.push(obj);
+          }
+
+          rows = rowsEjecutado
+          var ind = 0
+          for(var i in rows){
+            var row = rows[i]
+            this.list[ind]['data'].push(row.ejecutado)
+            ind++
+          }
+
+          let barChartData = {
+              labels: ["Programado", "Ejecutado"],
+              datasets: this.list
+
+          };
+          this.stackedChart = new Chart(this.stackedCanvas.nativeElement, {
+
+                  type: 'bar',
+                  data: barChartData,
+                  options: {
+                      title:{
+                          display:true,
+                          text:"Programado vs Ejecutado"
+                      },
+                      tooltips: {
+                          mode: 'index',
+                          intersect: false
+                      },
+                      responsive: true,
+                      scales: {
+                          xAxes: [{
+                              stacked: true,
+                          }],
+                          yAxes: [{
+                              stacked: true
+                          }]
+                      }
+                  }
+
+              });
+        })
     })
-    let barChartData = {
-        labels: ["Programado", "Ejecutado"],
-        datasets: [{
-            label: 'Alto Paraná',
-            backgroundColor: 'rgba(119, 0, 59, 0.4)',
-            stack: 'Stack 0',
-            data: [
-                12300, 13400
-            ]
-        }, {
-            label: 'Central',
-            backgroundColor: 'rgba(27, 17, 59, 0.5)',
-            stack: 'Stack 0',
-            data: [
-                15200, 13000
-            ]
-        },
-        {
-            label: 'Canindeyu',
-            backgroundColor: 'rgba(118, 17, 59, 0.5)',
-            stack: 'Stack 0',
-            data: [
-                18900, 10000
-            ]
-        },
-        {
-            label: 'Amambay',
-            backgroundColor: 'rgba(118, 17, 204, 0.5)',
-            stack: 'Stack 0',
-            data: [
-                80000, 12500
-            ]
-        },
-        {
-            label: 'San Pedro',
-            backgroundColor: 'rgba(118, 196, 204, 0.5)',
-            stack: 'Stack 0',
-            data: [
-                80000, 125000
-            ]
-        }]
 
-    };
-    this.stackedChart = new Chart(this.stackedCanvas.nativeElement, {
+    // let barChartData = {
+    //     labels: ["Programado", "Ejecutado"],
+    //     datasets: [{
+    //         label: 'Alto Paraná',
+    //         backgroundColor: 'rgba(119, 0, 59, 0.4)',
+    //         stack: 'Stack 0',
+    //         data: [
+    //             12300, 13400
+    //         ]
+    //     }, {
+    //         label: 'Central',
+    //         backgroundColor: 'rgba(27, 17, 59, 0.5)',
+    //         stack: 'Stack 0',
+    //         data: [
+    //             15200, 13000
+    //         ]
+    //     },
+    //     {
+    //         label: 'Canindeyu',
+    //         backgroundColor: 'rgba(118, 17, 59, 0.5)',
+    //         stack: 'Stack 0',
+    //         data: [
+    //             18900, 10000
+    //         ]
+    //     },
+    //     {
+    //         label: 'Amambay',
+    //         backgroundColor: 'rgba(118, 17, 204, 0.5)',
+    //         stack: 'Stack 0',
+    //         data: [
+    //             80000, 12500
+    //         ]
+    //     },
+    //     {
+    //         label: 'San Pedro',
+    //         backgroundColor: 'rgba(118, 196, 204, 0.5)',
+    //         stack: 'Stack 0',
+    //         data: [
+    //             80000, 125000
+    //         ]
+    //     }]
+    //
+    // };
 
-            type: 'bar',
-            data: barChartData,
-            options: {
-                title:{
-                    display:true,
-                    text:"Programado vs Ejecutado"
-                },
-                tooltips: {
-                    mode: 'index',
-                    intersect: false
-                },
-                responsive: true,
-                scales: {
-                    xAxes: [{
-                        stacked: true,
-                    }],
-                    yAxes: [{
-                        stacked: true
-                    }]
-                }
-            }
-
-        });
   }
 
   updateSchedule() {
