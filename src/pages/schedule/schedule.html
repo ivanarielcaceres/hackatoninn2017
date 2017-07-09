@@ -1,23 +1,9 @@
 <ion-header>
   <ion-navbar no-border-bottom>
+    <ion-title start>Tablero de control</ion-title>
     <button ion-button menuToggle>
       <ion-icon name="menu"></ion-icon>
     </button>
-
-    <ion-segment [(ngModel)]="segment" (ionChange)="updateSchedule()">
-      <ion-segment-button value="all">
-        All
-      </ion-segment-button>
-      <ion-segment-button value="favorites">
-        Favorites
-      </ion-segment-button>
-    </ion-segment>
-
-    <ion-buttons end>
-      <button ion-button icon-only (click)="presentFilter()">
-        <ion-icon ios="ios-options-outline" md="md-options"></ion-icon>
-      </button>
-    </ion-buttons>
   </ion-navbar>
 
   <ion-toolbar no-border-top>
@@ -30,49 +16,28 @@
 </ion-header>
 
 <ion-content>
-  <ion-refresher (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
+ <ion-item>
+    <ion-label>Institución</ion-label>
+    <ion-select>
+      <ion-option value="altoparana">Gobernación Alto Paraná</ion-option>
+      <ion-option value="central">Gobernación Central</ion-option>
+      <ion-option value="canindeyu">Gobernación Canindeyu</ion-option>
+    </ion-select>
+ </ion-item>
+ <ion-item>
+    <ion-label>Linea de acción</ion-label>
+    <ion-select>
+      <ion-option value="cde">Ciudad del este</ion-option>
+      <ion-option value="asu">Asuncion</ion-option>
+      <ion-option value="enc">Encarnacion</ion-option>
+    </ion-select>
+ </ion-item>
 
-  <ion-list #scheduleList [hidden]="shownSessions === 0">
-
-    <ion-item-group *ngFor="let group of groups" [hidden]="group.hide">
-
-      <ion-item-divider sticky>
-        <ion-label>
-          {{group.time}}
-        </ion-label>
-      </ion-item-divider>
-
-      <ion-item-sliding *ngFor="let session of group.sessions" #slidingItem [attr.track]="session.tracks[0] | lowercase" [hidden]="session.hide">
-
-        <button ion-item (click)="goToSessionDetail(session)">
-          <h3>{{session.name}}</h3>
-          <p>
-            {{session.timeStart}} &mdash;
-            {{session.timeEnd}}:
-            {{session.location}}
-          </p>
-        </button>
-
-        <ion-item-options>
-          <button ion-button color="favorite" (click)="addFavorite(slidingItem, session)" *ngIf="segment === 'all'">
-            Favorite
-          </button>
-          <button ion-button color="danger" (click)="removeFavorite(slidingItem, session, 'Remove Favorite')" *ngIf="segment === 'favorites'">
-            Remove
-          </button>
-        </ion-item-options>
-
-      </ion-item-sliding>
-
-    </ion-item-group>
-
-  </ion-list>
-
-  <ion-list-header [hidden]="shownSessions > 0">
-      No Sessions Found
-  </ion-list-header>
+  <ion-card>
+    <ion-card-content>
+      <canvas #stackedCanvas></canvas>
+    </ion-card-content>
+  </ion-card>
 
   <ion-fab bottom right #fab>
     <button ion-fab><ion-icon name="share"></ion-icon></button>

@@ -1,15 +1,10 @@
 import { Component, ViewChild } from '@angular/core';
-
 import { AlertController, App, FabContainer, ItemSliding, List, ModalController, NavController, ToastController, LoadingController, Refresher } from 'ionic-angular';
-
-/*
-  To learn how to use third party libs in an
-  Ionic app check out our docs here: http://ionicframework.com/docs/v2/resources/third-party-libs/
-*/
-// import moment from 'moment';
+import { Chart } from 'chart.js';
 
 import { ConferenceData } from '../../providers/conference-data';
 import { UserData } from '../../providers/user-data';
+import { LocationData } from '../../providers/location-data';
 
 import { SessionDetailPage } from '../session-detail/session-detail';
 import { ScheduleFilterPage } from '../schedule-filter/schedule-filter';
@@ -25,7 +20,9 @@ export class SchedulePage {
   // with the variable #scheduleList, `read: List` tells it to return
   // the List and not a reference to the element
   @ViewChild('scheduleList', { read: List }) scheduleList: List;
+  @ViewChild('stackedCanvas') stackedCanvas;
 
+  stackedChart: any;
   dayIndex = 0;
   queryText = '';
   segment = 'all';
@@ -33,6 +30,8 @@ export class SchedulePage {
   shownSessions: any = [];
   groups: any = [];
   confDate: string;
+  deptos: any = [];
+  distrs: any = [];
 
   constructor(
     public alertCtrl: AlertController,
@@ -42,12 +41,92 @@ export class SchedulePage {
     public navCtrl: NavController,
     public toastCtrl: ToastController,
     public confData: ConferenceData,
+    public locationData: LocationData,
     public user: UserData,
   ) {}
 
   ionViewDidLoad() {
-    this.app.setTitle('Schedule');
-    this.updateSchedule();
+    this.locationData.getDepDistritos().subscribe((results) => {
+      let rows = results.json().rows
+      rows.map((result) => {
+        let depto = result.depto_nombre
+        let dist = result.dist_nombre
+        this.deptos.push(depto)
+        this.distrs.push(dist)
+      })
+      this.distrs = new Set(this.distrs)
+      this.deptos = new Set(this.deptos)
+      console.log(this.distrs)
+      console.log(this.deptos)
+    })
+    let barChartData = {
+        labels: ["Programado", "Ejecutado"],
+        datasets: [{
+            label: 'Alto Paraná',
+            backgroundColor: 'rgba(119, 0, 59, 0.4)',
+            stack: 'Stack 0',
+            data: [
+                12300, 13400
+            ]
+        }, {
+            label: 'Central',
+            backgroundColor: 'rgba(27, 17, 59, 0.5)',
+            stack: 'Stack 0',
+            data: [
+                15200, 13000
+            ]
+        },
+        {
+            label: 'Canindeyu',
+            backgroundColor: 'rgba(118, 17, 59, 0.5)',
+            stack: 'Stack 0',
+            data: [
+                18900, 10000
+            ]
+        },
+        {
+            label: 'Amambay',
+            backgroundColor: 'rgba(118, 17, 204, 0.5)',
+            stack: 'Stack 0',
+            data: [
+                80000, 12500
+            ]
+        },
+        {
+            label: 'San Pedro',
+            backgroundColor: 'rgba(118, 196, 204, 0.5)',
+            stack: 'Stack 0',
+            data: [
+                80000, 125000
+            ]
+        }]
+
+    };
+    this.stackedChart = new Chart(this.stackedCanvas.nativeElement, {
+
+            type: 'bar',
+            data: barChartData,
+            options: {
+                title:{
+                    display:true,
+                    text:"Programado vs Ejecutado"
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false
+                },
+                responsive: true,
+                scales: {
+                    xAxes: [{
+                        stacked: true,
+                    }],
+                    yAxes: [{
+                        stacked: true
+                    }]
+                }
+            }
+
+        });
   }
 
   updateSchedule() {

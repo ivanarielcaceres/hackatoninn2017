@@ -27,6 +27,7 @@ import { TutorialPage } from '../pages/tutorial/tutorial';
 import { SupportPage } from '../pages/support/support';
 
 import { ConferenceData } from '../providers/conference-data';
+import { LocationData } from '../providers/location-data';
 import { UserData } from '../providers/user-data';
 
 
@@ -91,6 +92,7 @@ import { UserData } from '../providers/user-data';
   providers: [
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     ConferenceData,
+    LocationData,
     UserData,
     InAppBrowser,
     SplashScreen
